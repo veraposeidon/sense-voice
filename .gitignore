@@ -1,0 +1,26 @@
+# serena
+.serena/
+
+# venv
+.venv/
+
+# pycache
+__pycache__/
+
+# logs
+logs/
+
+# cache
+cache/
+
+# dist
+dist/
+
+# build
+build/
+
+# .env
+.env
+
+# resources
+sensevoice/resource/

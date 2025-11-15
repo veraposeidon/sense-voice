@@ -1,0 +1,20 @@
+[project]
+name = "sensevoice-macos-service"
+version = "0.1.0"
+description = "Local CLI and HTTP wrapper for SenseVoice ONNX transcription on macOS."
+authors = [{ name = "SenseVoice Team" }]
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "sensevoice-onnx==1.1.0",
+    "fastapi>=0.110,<1.0",
+    "uvicorn[standard]>=0.27,<1.0",
+    "typer>=0.9,<1.0",
+    "soundfile>=0.12,<1.0",
+    "librosa>=0.10,<1.0",
+    "pydantic>=2.7,<3.0",
+]
+
+[build-system]
+requires = ["setuptools<=65.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
