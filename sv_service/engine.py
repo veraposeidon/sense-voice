@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import os
 import re
 import threading
 from pathlib import Path
@@ -22,6 +21,7 @@ from .config import DEFAULT_CONFIG, SenseVoiceConfig
 LOGGER = logging.getLogger(__name__)
 
 LANGUAGE_IDS = {"auto": 0, "zh": 3, "en": 4, "yue": 7, "ja": 11, "ko": 12, "nospeech": 13}
+# SenseVoice 会在文本前插入 `<|NEUTRAL|><|Speech|>` 等标签，用集合定义便于快速判断
 EMOTION_TAGS = {"NEUTRAL", "HAPPY", "SAD", "ANGRY", "CALM", "FEAR", "DISGUST"}
 EVENT_TAGS = {
     "Speech",
@@ -49,7 +49,9 @@ class SenseVoiceEngine:
         self._language_id = LANGUAGE_IDS.get(cfg.language, LANGUAGE_IDS["auto"])
         self._run_lock = threading.Lock()
         self._ensure_resources()
+        # WavFrontend 将波形转换为 SenseVoice 训练时所用的 fbank 特征
         self._frontend = WavFrontend(str(self._model_dir / "am.mvn"))
+        # FSMNVad 用于截取“有声音”的片段，避免整体推理带来的长延迟
         self._vad = FSMNVad(str(self._model_dir))
         self._session = SenseVoiceInferenceSession(
             str(self._model_dir / "embedding.npy"),
@@ -78,7 +80,7 @@ class SenseVoiceEngine:
         with self._run_lock:
             waveform, sample_rate = sf.read(audio_path, dtype="float32")
             if waveform.ndim > 1:
-                waveform = waveform.mean(axis=1)
+                waveform = waveform.mean(axis=1)  # 兜底：若仍为多声道则取平均，保持与训练一致
             if sample_rate != 16000:
                 raise ValueError("SenseVoiceEngine 仅接受 16k wav 输入，请先调用 audio_io.normalize_audio_to_wav")
 
@@ -139,6 +141,7 @@ class SenseVoiceEngine:
             )
 
     def _run_vad(self, waveform: np.ndarray) -> Sequence[Sequence[int]]:
+        # VAD 返回 (start_ms, end_ms) 列表，以毫秒为单位
         segments = self._vad.segments_offline(waveform)
         if not segments:
             duration_ms = int(len(waveform) / 16)
@@ -160,9 +163,10 @@ class SenseVoiceEngine:
             chunk = waveform[start_idx:end_idx]
             if chunk.size == 0:
                 continue
-            feats = self._frontend.get_features(chunk)
+            feats = self._frontend.get_features(chunk)  # → [帧数, 特征维度]
             if feats.size == 0:
                 continue
+            # SenseVoiceInferenceSession 本质是对 ONNX Runtime 的一次推理调用
             raw_text = self._session(
                 feats[None, ...],
                 language=self._language_id,
@@ -183,6 +187,7 @@ class SenseVoiceEngine:
         return decoded
 
     def _decode_full_clip(self, waveform: np.ndarray) -> List[Dict[str, Any]]:
+        # 当 VAD 未检测到片段时仍需对整段音频执行一次推理
         feats = self._frontend.get_features(waveform)
         raw_text = self._session(
             feats[None, ...],
@@ -204,7 +209,7 @@ class SenseVoiceEngine:
 
     @staticmethod
     def _parse_output(raw_text: str) -> Tuple[str, str | None, str | None, str | None]:
-        tags = TAG_PATTERN.findall(raw_text)
+        tags = TAG_PATTERN.findall(raw_text)  # e.g. ["zh", "NEUTRAL", "Speech"]
         clean_text = TAG_PATTERN.sub("", raw_text).strip()
         language = None
         emotion = None

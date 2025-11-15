@@ -35,6 +35,7 @@ def transcribe(
     results: List[dict] = []
     for audio_file in audio_files:
         try:
+            # normalized_audio_file 会在 with 块结束后移除临时 wav，避免磁盘垃圾
             with normalized_audio_file(audio_file) as normalized:
                 res = engine.transcribe_file(normalized)
             results.append({"file": str(audio_file), **res})

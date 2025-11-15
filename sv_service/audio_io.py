@@ -24,13 +24,16 @@ def normalize_audio_to_wav(src: Union[str, Path]) -> str:
     if not path.exists():
         raise FileNotFoundError(f"音频文件不存在: {path}")
 
+    # librosa.load 可直接解码多种格式；mono=True 会在读取阶段自动混合声道
     audio, sr = librosa.load(path.as_posix(), sr=None, mono=True)
     if sr != TARGET_SR:
+        # SenseVoice 仅接受 16k 音频，因此必要时执行重采样
         audio = librosa.resample(audio, orig_sr=sr, target_sr=TARGET_SR)
         sr = TARGET_SR
 
     fd, tmp_path = tempfile.mkstemp(prefix="sv_audio_", suffix=".wav")
     os.close(fd)
+    # soundfile.write 会保存为线性 PCM WAV，供 SenseVoiceEngine 直接读取
     sf.write(tmp_path, audio, sr)
     return tmp_path
 

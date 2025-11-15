@@ -20,7 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-engine = SenseVoiceEngine.get_instance()
+engine = SenseVoiceEngine.get_instance()  # 服务启动时加载模型，后续请求共享
 
 
 @app.get("/healthz")
@@ -37,6 +37,7 @@ def transcribe(req: TranscribeRequest) -> TranscribeResponse:
     if not file_path.exists():
         raise HTTPException(status_code=404, detail=f"audio_path not found: {file_path}")
 
+    # CLI 与 HTTP 共用统一入口：确保输入 wav 是 16k/mono
     with normalized_audio_file(file_path) as normalized:
         result = engine.transcribe_file(normalized)
 

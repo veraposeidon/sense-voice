@@ -82,4 +82,4 @@ curl -X POST 127.0.0.1:8000/v1/transcribe \
 3. 推理引擎 `SenseVoiceEngine` 为线程安全单例，可同时供 CLI 与 HTTP 使用。
 4. 所有音频在进入推理前都会通过 `audio_io.normalize_audio_to_wav` 统一成 16k 单声道 wav。
 
-完成 CLI/HTTP 验证后，可在同机起服务，给未来 SwiftUI/AppKit 客户端提供本地 API。
+完成 CLI/HTTP 验证后，可在同机起服务，给未来 SwiftUI/AppKit 客户端提供本地 API。如需了解整体流程与音频术语，可继续阅读 `docs/architecture.md`。
