@@ -14,7 +14,7 @@ class SenseVoiceConfig:
     num_threads: int = 4  # ONNX Runtime 的线程数，影响 CPU 推理吞吐
     language: str = "auto"  # SenseVoice 支持 auto/zh/en/yue/ja/ko/nospeech
     use_itn: bool = True  # ITN（Inverse Text Normalization）用于数字、时间等格式化
-    use_int8: bool = True  # 是否加载 INT8 量化模型，速度快但略有精度损失
+    use_int8: bool = False  # 是否加载 INT8 量化模型，速度快但略有精度损失
 
 
 DEFAULT_CONFIG = SenseVoiceConfig()
