@@ -99,3 +99,25 @@ curl -X POST 127.0.0.1:8000/v1/transcribe \
 4. 所有音频在进入推理前都会通过 `audio_io.normalize_audio_to_wav` 统一成 16k 单声道 wav。
 
 完成 CLI/HTTP 验证后，可在同机起服务，给未来 SwiftUI/AppKit 客户端提供本地 API。如需了解整体流程与音频术语，可继续阅读 `docs/architecture.md`。
+
+## 示例工作流
+
+```bash
+# 1. 准备音频文件
+cp ~/Downloads/meeting.m4a ./test_audio/
+
+# 2. 运行转写
+sv transcribe test_audio/meeting.m4a
+
+# 3. 查看结果（自动保存为 JSON）
+cat test_audio/meeting.json
+```
+
+## 贡献指南
+
+欢迎提交 Issue 和 PR！主要关注点：
+
+- 新增功能请先开 Issue 讨论
+- PR 需包含测试用例
+- 代码风格遵循 PEP 8，使用 `black` 格式化
+- 更新 README 和相关文档
