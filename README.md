@@ -47,6 +47,22 @@ sensevoice-macos-service/
 
 等价地也可以使用脚本：`./scripts/run_cli.sh transcribe <path>`.
 
+#### 常用命令速查
+
+```bash
+# 转写单个音频文件
+sv transcribe path/to/audio.wav
+
+# 转写目录下所有音频文件
+sv transcribe path/to/audio/dir/
+
+# 指定输出格式（默认 json）
+sv transcribe path/to/audio.wav --output-format json
+
+# 启用调试模式查看详细日志
+sv transcribe path/to/audio.wav --debug
+```
+
 ### HTTP 服务
 
 ```bash
